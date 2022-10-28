@@ -123,24 +123,27 @@ exports.updatePost = async (req, res, next) => {
             post: posts,
         });
     } catch (err) {
-        console.log(err);
         return res.status(500).json({
             message: "Inernal error! Please wait a while and reload the page.",
         });
     }
 };
 
-//Delete Module by id  => /api/cms/v1/Module/delete/:id
-exports.deleteModule = async (req, res, next) => {
-    const module = await Post.findById(req.params.id);
-    if (!module) {
-        return next(new ErrorHandler("Module not found", 404));
+// Get Post By Id => api/posts [DELETE]
+exports.deletePost = async (req, res, next) => {
+    const post = await Post.findById(req.params.id);
+    
+    if (!post) {
+        return res.status(404).json({
+            message: "Data Not Found",
+        });
     }
 
-    await module.remove();
+    await post.remove();
 
     res.status(200).json({
         success: true,
-        message: _response.delete,
+        message: "Successfully Deleted!",
+        post: post,
     });
 };
