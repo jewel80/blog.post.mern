@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 const postsSchema = new mongoose.Schema({
   title: {
     type: String,
+    unique: true,
   },
   emTest: {
     type: String,

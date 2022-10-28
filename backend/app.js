@@ -1,33 +1,43 @@
 const express = require('express');
 var cors = require('cors');
-const app = express();
-const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser')
 const dotenv = require('dotenv');
-var path = require('path');
+const connectDatabase = require('./config/database')
 
 dotenv.config({ path: 'backend/config/config.env' })
-app.use('/api/public', express.static(__dirname + '/public'))
 require('dotenv').config({ path: 'config/config.env' })
 
-
-
+const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cookieParser());
 
 
-//Import all routes
-const contentRoute = require('./routers/contentRoute');
-
-
+//Import routes...
+const postsRoute = require('./routes/postsRoute');
 
 
 //API Route Middleware 
-app.use('/api/cms/v1/', contentRoute);
+app.use('/api/', postsRoute);
+
+
+//connecting to dabase 
+connectDatabase();
+
+
+//server port config...
+const server = app.listen(process.env.PORT || 5000, () => {
+    console.log(`Backend Server started on PORT: ${process.env.PORT} in ${process.env.NODE_ENV}`);
+})
 
 
 
-
-module.exports = app;
+//Handle unhandle promise rejection
+process.on('unhandledRejection', err => {
+    // console.log(`Error: ${err.message}`);
+    console.log(`Error: ${err.stack}`);
+    console.log(`Shutting Down the server due to unhandle promise rejection}`);
+    server.close(() => {
+        process.exit(1)
+    })
+})
