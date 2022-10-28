@@ -38,8 +38,8 @@ exports.createPosts = async (req, res, next) => {
     }
 };
 
-// cms Module => /api/cms/v1/Module/add
-exports.getposts = async (req, res, next) => {
+// Get All Posts => api/posts [POST]
+exports.getPosts = async (req, res, next) => {
     try {
         const posts = await Post.find();
         res.status(200).json({
@@ -48,75 +48,84 @@ exports.getposts = async (req, res, next) => {
             posts,
         });
     } catch (err) {
-        res.status(400).send(err);
+        res.status(500).send(err);
     }
 };
 
-//find by id from module collection => /api/cms/v1/module/list/:id
-exports.getModuleListById = async (req, res, next) => {
+// Get Post By Id => api/posts/:id [GET]
+exports.getPostsListById = async (req, res, next) => {
     let isValidId = mongoose.Types.ObjectId.isValid(req.params.id);
 
-    // //Param valid check
     if (!isValidId) {
         return res.status(400).json({
-            message: _response.isNotValidId,
+            message: "Invalid ID!",
         });
     }
 
-    // //collection data find
     let data = await Post.findById(req.params.id);
-
-    // // condition check
     if (!data) {
         return res.status(404).json({
-            message: _response.notFound,
+            message: "Data Not Found",
         });
     }
 
     try {
-        //find by id from module collection
-        const module = await Post.findOne({
+        const post = await Post.findOne({
             _id: req.params.id,
         });
 
         //success response json data
         res.status(200).json({
             success: true,
-            module,
+            message: "Successfully retrieved the requested data.",
+            post,
         });
+
     } catch (err) {
         //Error message response
         return res.status(500).json({
-            message: _response.internalError,
+            message: "Inernal error! Please wait a while and reload the page.",
         });
     }
 };
 
 
+// Get Post By Id => api/posts [PUT]
+exports.updatePost = async (req, res, next) => {
 
-//Updated Module collection by id => /api/cms/v1/Module/update/:id
-exports.updateModule = async (req, res, next) => {
-    let module = await Post.findById(req.params.id);
+    let isValidId = mongoose.Types.ObjectId.isValid(req.body.id);
 
-    if (!module) {
-        return next(new ErrorHandler("Module not found", 404));
+    if (!isValidId) {
+        return res.status(400).json({
+            message: "Invalid ID!",
+        });
+    }
+
+    let post = await Post.findById(req.body.id);
+    if (!post) {
+        return res.status(404).json({
+            message: "Data Not Found",
+        });
     }
 
     try {
-        module = await Post.findByIdAndUpdate(req.params.id, req.body, {
-            new: true,
-            runValidators: true,
-            useFindAndModify: false,
+        let posts = await Post.findOneAndUpdate({
+            _id: req.body.id,
+        }, {
+            $set: req.body,
+        }, {
+            new: true
         });
 
         res.status(200).json({
             success: true,
-            module,
-            message: _response.update,
+            message: "Successfully Updated!",
+            post: posts,
         });
     } catch (err) {
+        console.log(err);
         return res.status(500).json({
-            message: _response.internalError,
+            message: "Inernal error! Please wait a while and reload the page.",
         });
     }
 };

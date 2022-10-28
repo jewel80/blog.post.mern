@@ -6,6 +6,9 @@ const commentsSchema = new mongoose.Schema({
   title: {
     type: String,
   },
+  postId: {
+    type: String,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
