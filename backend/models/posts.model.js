@@ -14,9 +14,7 @@ const postsSchema = new mongoose.Schema({
     type: String,
   },
   imgUrl: {
-    type: String,
-    required: true,
-    unique: true,
+    type: String
   },
   createdAt: {
     type: Date,
