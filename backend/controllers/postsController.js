@@ -1,9 +1,10 @@
 
 const Post = require("../models/posts.model");
+const Comment = require("../models/comments.model");
 const { default: mongoose } = require("mongoose");
 
 
-//create new post => api/posts [GET]
+//create new post => api/posts [POST]
 exports.createPosts = async (req, res, next) => {
     const {
         title,
@@ -38,7 +39,7 @@ exports.createPosts = async (req, res, next) => {
     }
 };
 
-// Get All Posts => api/posts [POST]
+// Get All Posts => api/posts [GET]
 exports.getPosts = async (req, res, next) => {
     try {
         const posts = await Post.find();
@@ -146,4 +147,72 @@ exports.deletePost = async (req, res, next) => {
         message: "Successfully Deleted!",
         post: post,
     });
+};
+
+
+
+//create new Comments => api/posts [POST]
+exports.createComments = async (req, res, next) => {
+    const postId = req.params.postId;
+
+    try {
+        const comment = await Comment.create({
+            title: req.body.title,
+            postId:postId,
+        });
+
+        res.status(200).json({
+            success: true,
+            comment,
+            message: "Created sucessfully!",
+        });
+    } catch (error) {
+        // error code 11000 indicates duplicate key error...
+        if (error.code === 11000) {
+            const duplicateKey = Object.keys(error.keyValue)[0];
+
+            return res.status(400).json({
+                message: `Provided ${duplicateKey} already exists.`,
+            });
+        }
+        throw error;
+    }
+};
+
+
+// Get Post By Id => api/posts/:id [GET]
+exports.getCommentsByPostId = async (req, res, next) => {
+    let isValidId = mongoose.Types.ObjectId.isValid(req.params.id);
+
+    if (!isValidId) {
+        return res.status(400).json({
+            message: "Invalid ID!",
+        });
+    }
+
+    let data = await Comment.findById(req.params.id);
+    if (!data) {
+        return res.status(404).json({
+            message: "Data Not Found",
+        });
+    }
+
+    try {
+        const comment = await Comment.findOne({
+            postId: req.params.id,
+        });
+
+        //success response json data
+        res.status(200).json({
+            success: true,
+            message: "Successfully retrieved the requested data.",
+            comment,
+        });
+
+    } catch (err) {
+        //Error message response
+        return res.status(500).json({
+            message: "Inernal error! Please wait a while and reload the page.",
+        });
+    }
 };
