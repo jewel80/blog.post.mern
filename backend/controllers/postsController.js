@@ -6,6 +6,7 @@ const { default: mongoose } = require("mongoose");
 
 //create new post => api/posts [POST]
 exports.createPosts = async (req, res, next) => {
+    console.log(req.body);
     const {
         title,
         emTest,
@@ -124,6 +125,7 @@ exports.updatePost = async (req, res, next) => {
             post: posts,
         });
     } catch (err) {
+        console.log(err);
         return res.status(500).json({
             message: "Inernal error! Please wait a while and reload the page.",
         });

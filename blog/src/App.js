@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import React, { useEffect, useState } from 'react';
+import { useForm } from "react-hook-form";
 import { BrowserRouter as Router, Link, Route, Switch, useParams } from "react-router-dom";
+
 import './App.css';
 
 
@@ -18,8 +20,8 @@ const PostSummary = (data) => {
         <img src={data.post.imgUrl} style={{ height: "50px", width: "50px" }} alt="post img" className="pull-left thumb margin10 img-thumbnail"></img>
         <p>{data.post.emTest}</p>
         <Link to={location => `/post-detail/${data.post._id}`}>Detail</Link> &nbsp;
-        {/* <Link to={location => `/post-edit/${post.id}`}>Edit</Link> &nbsp;
-        <Link to={location => `/post-delete/${post.id}`}>Delete</Link> &nbsp; */}
+        <Link to={location => `/post-edit/${data.post._id}`}>Edit</Link> &nbsp;
+        <Link to={location => `/post-delete/${data.post._id}`}>Delete</Link> &nbsp;
       </div>
       <br></br>
     </>
@@ -34,21 +36,21 @@ const PostDetails = (data) => {
       `http://127.0.0.1:5000/api/posts/${id}`,
       );
       setPost(response.data.post);
-    }, []);
+    }, [id]);
     
     let [post, setPost] = useState({});
 
-
   return (
     <>
-      <div align="left" className="col-md-10 blogShort" id={post.id}>
+      <div align="left" className="col-md-10 blogShort" id={post._id}>
         <h3>{post.title}</h3>
         <img src={post.imgUrl} style={{ height: "50px", width: "50px" }} alt="post img" className="pull-left thumb margin10 img-thumbnail"></img>
         <p>{post.emTest}</p>
         <p>{post.articleText}</p>
+        <a className="btn btn-blog pull-right marginBottom10" href={post.readMoreUrl}>READ MORE</a>  &nbsp;
         {/* <Link to={location => `/post-detail/${post.id}`}>Detail</Link> &nbsp; */}
-        {/* <Link to={location => `/post-edit/${post.id}`}>Edit</Link> &nbsp;
-        <Link to={location => `/post-delete/${post.id}`}>Delete</Link> &nbsp; */}
+        <Link to={location => `/post-edit/${post._id}`}>Edit</Link> &nbsp;
+        <Link to={location => `/post-delete/${post._id}`}>Delete</Link> &nbsp;
       </div>
 
       <br></br>
@@ -109,10 +111,118 @@ const Posts = () => {
 }
 
 function PostCreate() {
+  const { register, handleSubmit, watch, errors } = useForm();
+  
+  
+  let saveData = async (data) => {
+    const response = await axios.post('http://127.0.0.1:5000/api/posts', data)
+  }
+
+  const onSubmit = data => {
+    saveData(data);
+  }
+
+
   return (
-    <h5>create Post</h5>
-  );
+    <>
+      <h2>Create new Post</h2>
+      {/* <h4>Location: {location.latitude}, {location.longitude}</h4> */}
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <div className="form-group input-group">
+          <input type="text" placeholder="Title" name="title" ref={register({ required: true, maxLength: 100 })} className="form-control" />
+          <span>{errors.title && 'Title is required'}</span>
+        </div>
+        <div className="form-group input-group">
+          <input type="text" placeholder="Summary" name="emTest" ref={register({ required: true, maxLength: 100 })} className="form-control" />
+        </div>
+        <div className="form-group input-group">
+          <textarea name="articleText" ref={register({ required: true })} className="form-control" />
+        </div>
+        <div className="form-group input-group">
+          <input type="url" placeholder="Image URL" name="imgUrl" ref={register({ required: true })} className="form-control" />
+        </div>
+        <input type="submit" className="btn btn-primary btn-block" />
+      </form>
+    </>
+  )
 }
+
+const PostEdit = (props) => {
+  const { register, handleSubmit, watch, errors } = useForm();
+  let { id } = useParams();
+
+
+  useEffect(async () => {
+    const response = await axios(
+      `http://127.0.0.1:5000/api/posts/${id}`,
+      );
+      setPost(response.data.post);
+    }, [id]);
+    
+    let [post, setPost] = useState({});
+ 
+
+  let updateData =async (data) => {
+    console.log(data);
+    const response = await axios.put(`http://127.0.0.1:5000/api/posts`, data)
+  }
+
+  const onSubmit = data => {
+    updateData(data);
+  };
+
+  return (
+    <>
+      <h2>Update new Post</h2>
+      <form onSubmit={handleSubmit(onSubmit)}>
+      <div className="form-group input-group">
+          <input type="hidden"  name="id" defaultValue={post._id} ref={register({ required: true })} className="form-control" />
+        </div>
+        <div className="form-group input-group">
+          <input type="text" placeholder="Title" name="title" defaultValue={post.title} ref={register({ required: true })} className="form-control" />
+          <span>{errors.title && 'Title is required'}</span>
+        </div>
+        <div className="form-group input-group">
+          <input type="text" placeholder="Summary" name="emTest" defaultValue={post.emTest} ref={register({ required: true, maxLength: 100 })} className="form-control" />
+        </div>
+        <div className="form-group input-group">
+          <textarea name="articleText" defaultValue={post.articleText} ref={register({ required: true })} className="form-control" />
+        </div>
+        <div className="form-group input-group">
+          <input type="url" placeholder="Image URL" name="imgUrl" defaultValue={post.imgUrl} ref={register({ required: true })} className="form-control" />
+        </div>
+
+        <input type="submit" className="btn btn-primary btn-block" />
+      </form>
+    </>
+  )
+};
+
+const PostDelete = (props) => {
+  const { register, handleSubmit, watch, errors } = useForm();
+  let { id } = useParams();
+
+  useEffect(async () => {
+    const response = await axios.delete(
+      `http://127.0.0.1:5000/api/posts/${id}`,
+      );
+      setPost(response.data.post);
+    }, [id]);
+    
+    let [post, setPost] = useState({});
+
+  return (
+    <>
+      <h2>Delete Post</h2>
+      {/* <form onSubmit={handleSubmit(onSubmit)}>
+        <h2>{post.title}</h2>
+        <img src={post.imgUrl} style={{ height: "50px", width: "50px" }} alt="post img" className="pull-left thumb margin10 img-thumbnail"></img>
+        <article><p>{post.articleText}</p></article>
+        <input type="submit" className="btn btn-primary btn-block" value="Delete" />
+      </form> */}
+    </>
+  )
+};
 
 
 function App() {
@@ -137,6 +247,8 @@ function App() {
               <Switch>
                 <Route path="/post-detail/:id"><PostDetails /></Route>
                 <Route path="/post-create"><PostCreate /></Route>
+                <Route path="/post-edit/:id"><PostEdit /></Route>
+                <Route path="/post-delete/:id"><PostDelete /></Route>
                 <Route path="/posts"><Posts /></Route>
                 <Route path="/"><Home /></Route>
               </Switch>
